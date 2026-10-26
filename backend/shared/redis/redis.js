@@ -6,4 +6,8 @@ redis.on("connect",()=>{
     console.log("redis connected")
 })
 
+redis.on("error",(err)=>{
+    console.warn("Redis warning:", err.message)
+})
+
 export default redis
