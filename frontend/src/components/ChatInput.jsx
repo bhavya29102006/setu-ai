@@ -102,8 +102,12 @@ function ChatInput() {
     const data = await sendMessage(formData)
     dispatch(setIsLoading(false))
     setSelectedFile(null)
-    dispatch(setArtifacts(data.artifacts || []))
-    dispatch(addMessage({ role: "assistant", content: data?.answer, images: data?.images }))
+    dispatch(setArtifacts(data?.artifacts || []))
+    if (data?.answer) {
+      dispatch(addMessage({ role: "assistant", content: data.answer, images: data.images }))
+    } else {
+      dispatch(addMessage({ role: "assistant", content: "⚠️ Request failed. Please check that all backend services (especially Chat Service on port 8002) are running." }))
+    }
     console.log(data)
   }
 
