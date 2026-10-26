@@ -3,27 +3,27 @@ import { agent } from "../controllers/agent.controller.js"
 
 export const router = async (state) => {
 
+  if(state.file){
+    if(state.file.mimetype==="application/pdf"){
+      return {
+        ...state,
+        agent:"pdfRag"
+      }
+    }
+
+    if(state.file.mimetype.startsWith("image/")){
+      return {
+        ...state,
+        agent:"imageAnalyzer"
+      }
+    }
+  }
+
   if (state.agent && state.agent !== "auto") {
     return {
       ...state,
       agent: state.agent
     }
-  }
-
-  if(state.file){
-if(state.file.mimetype==="application/pdf"){
-    return {
-      ...state,
-      agent:"pdfRag"
-    }
-  }
-
-    if(state.file.mimetype.startsWith("image/")){
-    return {
-      ...state,
-      agent:"imageAnalyzer"
-    }
-  }
   }
 
   
@@ -89,12 +89,17 @@ User Query:
 `
 
   const response = await llm.invoke(prompt)
+  const agentSelection = response.content
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z]/g, "")
+
+  const validAgents = ["chat", "search", "coding", "pdf", "ppt", "vision"]
+  const matchedAgent = validAgents.find(a => agentSelection.includes(a)) || "chat"
 
   return {
     ...state,
-    agent: response.content
-      .trim()
-      .toLowerCase()
+    agent: matchedAgent
   }
 
 

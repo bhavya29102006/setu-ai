@@ -7,11 +7,18 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages"
 import { deductCredits } from "../utils/deductCredits.js"
 import { checkAgentLimit } from "../config/agentLimit.js"
 export const pdfRag=async (state)=>{
+   if (!state.file || !state.file.path) {
+      return {
+         ...state,
+         aiResponse: "No PDF file was provided or file upload failed."
+      }
+   }
+
    try {
     await checkAgentLimit(state.userId,"pdf")
       const buffer=fs.readFileSync(state.file.path)
       const pdf=new PDFParse({
-        data:buffer
+        data: new Uint8Array(buffer)
       })
 
       const result=await pdf.getText()
@@ -69,10 +76,16 @@ new HumanMessage(`
     console.log(error)
          return {
             ...state,
-            aiResponse:error?.data?.message || "failed to analyze pdf"
+            aiResponse:error?.data?.message || error?.message || "failed to analyze pdf"
         }
    }finally{
-         fs.unlinkSync(state.file.path)
+      if (state.file?.path && fs.existsSync(state.file.path)) {
+         try {
+            fs.unlinkSync(state.file.path)
+         } catch (unlinkErr) {
+            console.error("Failed to delete temp file:", unlinkErr)
+         }
+      }
    }
 
 
