@@ -1,12 +1,17 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Setu AI Microservices Backend",
   "license": "ISC",
   "author": "",
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "start:gateway": "node gateway/index.js",
+    "start:auth": "node services/auth/index.js",
+    "start:chat": "node services/chat/index.js",
+    "start:agent": "node services/agent/index.js",
+    "start:billing": "node services/billing/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

@@ -1,6 +1,8 @@
 import Redis from "ioredis"
 
-const redis = new Redis(process.env.REDIS_URL, {
+const redisUrl = process.env.REDIS_URL || "redis://localhost:6379"
+
+const redis = new Redis(redisUrl, {
     maxRetriesPerRequest: null,
     retryStrategy(times) {
         return Math.min(times * 1000, 5000)
@@ -16,7 +18,7 @@ redis.on("connect", () => {
 
 redis.on("error", (err) => {
     if (!hasLoggedError) {
-        console.warn("Redis not connected: waiting for Redis server at " + (process.env.REDIS_URL || "localhost:6379"))
+        console.warn(`Redis not connected: waiting for Redis server at ${redisUrl}`)
         hasLoggedError = true
     }
 })

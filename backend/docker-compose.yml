@@ -1,5 +1,130 @@
 services:
   redis:
-    image: redis
+    image: redis:alpine
+    container_name: setu_redis
     ports:
-      - 6379:6379
+      - "6379:6379"
+    restart: always
+
+  mongodb:
+    image: mongo:latest
+    container_name: setu_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: always
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: setu_qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: always
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: setu_gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - FRONTEND_URL=http://localhost:5173
+      - AUTH_SERVICE=http://auth:8001
+      - CHAT_SERVICE=http://chat:8002
+      - AGENT_SERVICE=http://agent:8003
+      - BILLING_SERVICE=http://billing:8004
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+      - auth
+      - chat
+      - agent
+      - billing
+    restart: always
+
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    container_name: setu_auth
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - MONGODB_URI=mongodb://mongodb:27017/setu-ai
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+      - mongodb
+    restart: always
+
+  chat:
+    build:
+      context: .
+      dockerfile: services/chat/Dockerfile
+    container_name: setu_chat
+    ports:
+      - "8002:8002"
+    environment:
+      - PORT=8002
+      - MONGODB_URI=mongodb://mongodb:27017/setu-ai
+    depends_on:
+      - mongodb
+    restart: always
+
+  agent:
+    build:
+      context: .
+      dockerfile: services/agent/Dockerfile
+    container_name: setu_agent
+    ports:
+      - "8003:8003"
+    environment:
+      - PORT=8003
+      - MONGODB_URI=mongodb://mongodb:27017/setu-ai
+      - REDIS_URL=redis://redis:6379
+      - CHAT_SERVICE=http://chat:8002
+      - AUTH_SERVICE=http://auth:8001
+      - QDRANT_URL=http://qdrant:6333
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+    depends_on:
+      - redis
+      - mongodb
+      - qdrant
+      - chat
+      - auth
+    restart: always
+
+  billing:
+    build:
+      context: .
+      dockerfile: services/billing/Dockerfile
+    container_name: setu_billing
+    ports:
+      - "8004:8004"
+    environment:
+      - PORT=8004
+      - MONGODB_URI=mongodb://mongodb:27017/setu-ai
+      - AUTH_SERVICE=http://auth:8001
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET}
+    depends_on:
+      - mongodb
+      - auth
+    restart: always
+
+volumes:
+  mongo_data:
+  qdrant_data:

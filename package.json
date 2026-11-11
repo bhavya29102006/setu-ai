@@ -1,0 +1,17 @@
+{
+  "name": "setu-ai",
+  "version": "1.0.0",
+  "description": "Setu AI - Autonomous Multi-Agent AI Platform with Microservices Architecture",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build",
+    "start:gateway": "npm --prefix backend run start:gateway",
+    "start:auth": "npm --prefix backend run start:auth",
+    "start:chat": "npm --prefix backend run start:chat",
+    "start:agent": "npm --prefix backend run start:agent",
+    "start:billing": "npm --prefix backend run start:billing",
+    "docker:up": "docker compose -f backend/docker-compose.yml up -d",
+    "docker:down": "docker compose -f backend/docker-compose.yml down"
+  }
+}
