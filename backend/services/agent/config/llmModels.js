@@ -1,43 +1,42 @@
+import path from "path"
+import { fileURLToPath } from "url"
 import dotenv from "dotenv"
-dotenv.config()
 import { ChatGroq } from "@langchain/groq"
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
 import { ChatOpenRouter } from "@langchain/openrouter"
 
-let groqInstance = null
-let geminiInstance = null
-let openrouterInstance = null
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+dotenv.config({ path: path.resolve(__dirname, "../.env") })
+dotenv.config({ path: path.resolve(__dirname, "../../.env") })
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") })
+dotenv.config()
 
 export const getGroqModel = () => {
-    if (!groqInstance) {
-        groqInstance = new ChatGroq({
-            apiKey: process.env.GROQ_API_KEY || "gsk_placeholder_key",
-            model: "openai/gpt-oss-120b"
-        })
-    }
-    return groqInstance
+    const apiKey = (process.env.GROQ_API_KEY || "").replace(/['"]/g, "").trim()
+    return new ChatGroq({
+        apiKey: apiKey || "gsk_placeholder_key",
+        model: "openai/gpt-oss-120b"
+    })
 }
 
 export const getGeminiModel = () => {
-    if (!geminiInstance) {
-        geminiInstance = new ChatGoogleGenerativeAI({
-            apiKey: process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || "dummy_google_api_key",
-            model: "gemini-2.5-flash"
-        })
-    }
-    return geminiInstance
+    const apiKey = (process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || "").replace(/['"]/g, "").trim()
+    return new ChatGoogleGenerativeAI({
+        apiKey: apiKey || "dummy_google_api_key",
+        model: "gemini-2.5-flash"
+    })
 }
 
 export const getOpenRouterModel = () => {
-    if (!openrouterInstance) {
-        openrouterInstance = new ChatOpenRouter({
-            apiKey: process.env.OPENROUTER_API_KEY || "dummy_openrouter_api_key",
-            model: "deepseek/deepseek-chat",
-            temperature: 0,
-            maxTokens: 2500
-        })
-    }
-    return openrouterInstance
+    const apiKey = (process.env.OPENROUTER_API_KEY || "").replace(/['"]/g, "").trim()
+    return new ChatOpenRouter({
+        apiKey: apiKey || "dummy_openrouter_api_key",
+        model: "deepseek/deepseek-chat",
+        temperature: 0,
+        maxTokens: 2500
+    })
 }
 
 export const getModel = async (agent) => {
